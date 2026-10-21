@@ -105,8 +105,8 @@ export async function generateImageFromPrompt(
     .replace(/[^\w\s,.-]/gi, "")
     .slice(0, 250);
 
-  // Fallback models to cycle through if a server is 503 or overloaded
-  const models = ["", "sana", "turbo"];
+  // Prioritize ultra-fast models (turbo/sana generate in <1s) with fallback
+  const models = ["turbo", "sana", ""];
   const maxRetries = 5;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {

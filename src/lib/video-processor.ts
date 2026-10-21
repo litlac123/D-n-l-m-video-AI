@@ -56,7 +56,7 @@ export async function createVideoFromImages(
 
   const filterComplex = `${filterParts.join("; ")}; ${concatInputs.join("")}concat=n=${imagePaths.length}:v=1:a=0[outv]`;
 
-  const cmd = `ffmpeg -y ${inputs} -filter_complex "${filterComplex}" -map "[outv]" -c:v libx264 -pix_fmt yuv420p -r 25 "${outputPath}"`;
+  const cmd = `ffmpeg -y ${inputs} -filter_complex "${filterComplex}" -map "[outv]" -c:v libx264 -preset veryfast -pix_fmt yuv420p -r 25 "${outputPath}"`;
 
   try {
     await execAsync(cmd, { timeout: 120000 });

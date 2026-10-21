@@ -51,42 +51,42 @@ async function processVideo(jobId: string, idea: string) {
       script,
     });
 
-    // Step 2: Generate images for each scene
-    const imagePaths: string[] = [];
+    // Step 2: Generate images for all scenes in parallel (high speed)
+    const imagePaths: string[] = new Array(script.scenes.length);
+    let completedCount = 0;
 
-    for (let i = 0; i < script.scenes.length; i++) {
-      const scene = script.scenes[i];
-      const progressPercent = 15 + ((i + 1) / script.scenes.length) * 60;
+    await Promise.all(
+      script.scenes.map(async (scene, i) => {
+        // Slight stagger to avoid burst lock
+        await new Promise((r) => setTimeout(r, i * 400));
 
-      setJobProgress(jobId, {
-        status: "processing",
-        progress: Math.round(progressPercent),
-        currentStep: `🎨 Đang tạo hình ảnh cảnh ${i + 1}/${script.scenes.length}: ${scene.description}`,
-        script,
-      });
+        const imageData = await generateImageFromPrompt(
+          scene.visualPrompt,
+          (msg) => {
+            setJobProgress(jobId, {
+              status: "processing",
+              progress: Math.round(15 + (completedCount / script.scenes.length) * 60),
+              currentStep: `${msg} [Cảnh ${i + 1}/${script.scenes.length}]`,
+              script,
+            });
+          }
+        );
 
-      const imageData = await generateImageFromPrompt(
-        scene.visualPrompt,
-        (msg) => {
-          setJobProgress(jobId, {
-            status: "processing",
-            progress: Math.round(progressPercent),
-            currentStep: `${msg} [Cảnh ${i + 1}/${script.scenes.length}]`,
-            script,
-          });
-        }
-      );
-      const imagePath = await saveBase64Image(
-        imageData,
-        `${jobId}_scene_${i + 1}.png`
-      );
-      imagePaths.push(imagePath);
+        const imagePath = await saveBase64Image(
+          imageData,
+          `${jobId}_scene_${i + 1}.png`
+        );
+        imagePaths[i] = imagePath;
+        completedCount++;
 
-      // Small delay to avoid rate limiting
-      if (i < script.scenes.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
-    }
+        setJobProgress(jobId, {
+          status: "processing",
+          progress: Math.round(15 + (completedCount / script.scenes.length) * 60),
+          currentStep: `🎨 Đã tạo xong hình ảnh ${completedCount}/${script.scenes.length} cảnh...`,
+          script,
+        });
+      })
+    );
 
     // Step 3: Create video with FFmpeg
     setJobProgress(jobId, {
