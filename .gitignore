@@ -35,3 +35,5 @@ next-env.d.ts
 # Generated videos
 /public/output/*
 !/public/output/.gitkeep
+
+temp/
