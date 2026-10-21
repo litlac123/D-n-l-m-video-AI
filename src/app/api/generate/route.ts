@@ -18,16 +18,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (
-    !process.env.GEMINI_API_KEY ||
-    process.env.GEMINI_API_KEY === "your_gemini_api_key_here"
-  ) {
-    return NextResponse.json(
-      { error: "Chưa cấu hình GEMINI_API_KEY. Hãy thêm API key vào file .env.local" },
-      { status: 500 }
-    );
-  }
-
   const jobId = uuidv4();
 
   // Start async processing
