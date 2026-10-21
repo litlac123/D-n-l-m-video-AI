@@ -65,7 +65,17 @@ async function processVideo(jobId: string, idea: string) {
         script,
       });
 
-      const imageData = await generateImageFromPrompt(scene.visualPrompt);
+      const imageData = await generateImageFromPrompt(
+        scene.visualPrompt,
+        (waitSec) => {
+          setJobProgress(jobId, {
+            status: "processing",
+            progress: Math.round(progressPercent),
+            currentStep: `⏳ Đang xếp hàng xử lý cảnh ${i + 1}/${script.scenes.length} (chờ ${waitSec}s)...`,
+            script,
+          });
+        }
+      );
       const imagePath = await saveBase64Image(
         imageData,
         `${jobId}_scene_${i + 1}.png`
@@ -88,7 +98,7 @@ async function processVideo(jobId: string, idea: string) {
 
     const videoUrl = await createVideoFromImages(
       imagePaths,
-      10, // 10 seconds per scene
+      15, // 15 seconds per scene (4 scenes = 60s)
       jobId
     );
 
