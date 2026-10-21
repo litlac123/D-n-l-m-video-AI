@@ -27,6 +27,8 @@ interface JobProgress {
 
 export default function Home() {
   const [idea, setIdea] = useState("");
+  const [voice, setVoice] = useState<"female" | "male">("female");
+  const [durationMode, setDurationMode] = useState<"1m" | "3m" | "5m">("1m");
   const [isGenerating, setIsGenerating] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
   const [progress, setProgress] = useState<JobProgress | null>(null);
@@ -83,7 +85,11 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea: idea.trim() }),
+        body: JSON.stringify({
+          idea: idea.trim(),
+          voice,
+          durationMode,
+        }),
       });
 
       const data = await res.json();
@@ -119,38 +125,123 @@ export default function Home() {
   };
 
   const exampleIdeas = [
-    "Hành trình khám phá vũ trụ với tàu không gian tương lai",
-    "Một ngày mưa ở Sài Gòn qua góc nhìn nghệ thuật",
-    "Cuộc sống dưới đại dương với những sinh vật kỳ bí",
-    "Thành phố cyberpunk năm 2077 về đêm",
+    "Hành trình một chú rùa con vượt biển lớn",
+    "Thành phố cyberpunk năm 2099 về đêm",
+    "Truyền thuyết về thanh gươm rồng thần thoại",
+    "Một ngày bình yên ở vùng cao Tây Bắc",
   ];
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-8">
       {/* Header */}
-      <div className="text-center mb-12 mt-8">
-        <div className="animate-float inline-block mb-4">
+      <div className="text-center mb-10 mt-6">
+        <div className="animate-float inline-block mb-3">
           <span className="text-6xl">🎬</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-4">
-          Video AI Generator
+        <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-3">
+          Studio Phim AI
         </h1>
-        <p className="text-gray-400 text-lg max-w-xl mx-auto">
-          Nhập ý tưởng của bạn → Nhận video AI 1 phút với kịch bản, hình ảnh và
-          hiệu ứng chuyên nghiệp
+        <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto">
+          Tạo phim ngắn & video điện ảnh kèm{" "}
+          <span className="text-purple-300 font-semibold">
+            lồng tiếng thuyết minh tiếng Việt
+          </span>{" "}
+          hoàn toàn tự động
         </p>
       </div>
 
       {/* Input Section */}
-      <div className="w-full max-w-2xl mb-8">
+      <div className="w-full max-w-2xl mb-8 space-y-4">
+        {/* Controls: Voice & Duration */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+          {/* Voice Selector */}
+          <div>
+            <label className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2 block">
+              🎙️ Giọng thuyết minh AI
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setVoice("female")}
+                disabled={isGenerating}
+                className={`py-2 px-3 rounded-xl text-sm font-medium transition-all ${
+                  voice === "female"
+                    ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg shadow-purple-500/25"
+                    : "bg-white/5 hover:bg-white/10 text-gray-300"
+                }`}
+              >
+                👩 Hoài My (Nữ)
+              </button>
+              <button
+                type="button"
+                onClick={() => setVoice("male")}
+                disabled={isGenerating}
+                className={`py-2 px-3 rounded-xl text-sm font-medium transition-all ${
+                  voice === "male"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-white/5 hover:bg-white/10 text-gray-300"
+                }`}
+              >
+                👨 Nam Minh (Nam)
+              </button>
+            </div>
+          </div>
+
+          {/* Duration Selector */}
+          <div>
+            <label className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2 block">
+              ⏱️ Thời lượng phim
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setDurationMode("1m")}
+                disabled={isGenerating}
+                className={`py-2 px-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                  durationMode === "1m"
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-500/25"
+                    : "bg-white/5 hover:bg-white/10 text-gray-300"
+                }`}
+              >
+                1 Phút (4 cảnh)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMode("3m")}
+                disabled={isGenerating}
+                className={`py-2 px-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                  durationMode === "3m"
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-500/25"
+                    : "bg-white/5 hover:bg-white/10 text-gray-300"
+                }`}
+              >
+                3 Phút (8 cảnh)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMode("5m")}
+                disabled={isGenerating}
+                className={`py-2 px-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                  durationMode === "5m"
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-500/25"
+                    : "bg-white/5 hover:bg-white/10 text-gray-300"
+                }`}
+              >
+                5 Phút (12 cảnh)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Idea Textarea */}
         <div className="relative">
           <textarea
             ref={textareaRef}
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Mô tả ý tưởng video của bạn... (ví dụ: Hành trình khám phá vũ trụ)"
-            className="w-full h-32 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 resize-none text-lg transition-all"
+            placeholder="Nhập ý tưởng bộ phim của bạn... (ví dụ: Chuyến thám hiểm hành tinh xa xôi của phi hành gia)"
+            className="w-full h-32 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 resize-none text-base md:text-lg transition-all"
             disabled={isGenerating}
           />
           <button
@@ -179,25 +270,25 @@ export default function Home() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Đang tạo...
+                Đang sản xuất phim...
               </span>
             ) : (
-              "✨ Tạo Video"
+              "✨ Bắt đầu làm phim"
             )}
           </button>
         </div>
 
         {/* Example Ideas */}
         {!isGenerating && !showResult && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="text-gray-500 text-sm py-1">Thử:</span>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <span className="text-gray-500 text-sm py-1">Gợi ý ý tưởng:</span>
             {exampleIdeas.map((ex, i) => (
               <button
                 key={i}
                 onClick={() => setIdea(ex)}
-                className="text-sm bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/5 transition-all"
+                className="text-xs sm:text-sm bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/5 transition-all"
               >
-                {ex.length > 40 ? ex.slice(0, 40) + "..." : ex}
+                {ex}
               </button>
             ))}
           </div>
@@ -209,7 +300,7 @@ export default function Home() {
         <div className="w-full max-w-2xl mb-8 animate-pulse-glow rounded-2xl">
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-white font-medium">
+              <span className="text-white font-medium text-sm sm:text-base">
                 {progress.currentStep}
               </span>
               <span className="text-purple-400 font-bold">
@@ -218,7 +309,7 @@ export default function Home() {
             </div>
             <div className="w-full bg-white/10 rounded-full h-3">
               <div
-                className="bg-gradient-to-r from-purple-600 to-blue-500 h-3 rounded-full transition-all duration-1000 ease-out"
+                className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 h-3 rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${progress.progress}%` }}
               />
             </div>
@@ -226,20 +317,19 @@ export default function Home() {
             {/* Script preview */}
             {progress.script && (
               <div className="mt-6 space-y-3">
-                <h3 className="text-white font-semibold text-lg">
-                  📝 Kịch bản: {progress.script.title}
+                <h3 className="text-white font-semibold text-lg flex items-center justify-between">
+                  <span>📝 Kịch bản: {progress.script.title}</span>
+                  <span className="text-xs text-purple-400 font-normal">
+                    {progress.script.scenes.length} cảnh
+                  </span>
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
                   {progress.script.scenes.map((scene, i) => (
                     <div
                       key={i}
-                      className={`p-3 rounded-lg border text-sm ${
-                        progress.progress > 15 + (i / progress.script!.scenes.length) * 60
-                          ? "bg-purple-500/10 border-purple-500/30 text-purple-300"
-                          : "bg-white/5 border-white/10 text-gray-500"
-                      }`}
+                      className="p-3 rounded-lg border text-sm bg-purple-500/10 border-purple-500/30 text-purple-300"
                     >
-                      <div className="font-medium">Cảnh {scene.sceneNumber}</div>
+                      <div className="font-medium text-xs">Cảnh {scene.sceneNumber}</div>
                       <div className="text-xs mt-1 opacity-75 line-clamp-2">
                         {scene.description}
                       </div>
@@ -279,7 +369,7 @@ export default function Home() {
         <div className="w-full max-w-3xl mb-8">
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
             <h3 className="text-white font-semibold text-xl mb-4 flex items-center gap-2">
-              🎉 Video đã hoàn thành!
+              🎉 Bộ phim có lồng tiếng đã hoàn thành!
               {progress.script && (
                 <span className="text-purple-400">
                   - {progress.script.title}
@@ -288,25 +378,25 @@ export default function Home() {
             </h3>
 
             {/* Video Player */}
-            <div className="rounded-xl overflow-hidden bg-black mb-4">
+            <div className="rounded-xl overflow-hidden bg-black mb-4 shadow-2xl border border-white/10">
               <video
                 controls
                 autoPlay
                 className="w-full aspect-video"
                 src={progress.videoUrl}
               >
-                Trình duyệt không hỗ trợ video.
+                Trình duyệt không hỗ trợ phát video.
               </video>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <a
                 href={progress.videoUrl}
                 download
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-6 py-2.5 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-6 py-2.5 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-green-500/25"
               >
-                ⬇️ Tải Video
+                ⬇️ Tải Phim Về Máy
               </a>
               <button
                 onClick={() => {
@@ -317,7 +407,7 @@ export default function Home() {
                 }}
                 className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-xl font-semibold transition-all"
               >
-                🔄 Tạo Video Mới
+                🔄 Làm Bộ Phim Khác
               </button>
             </div>
 
@@ -325,19 +415,22 @@ export default function Home() {
             {progress.script && (
               <div className="mt-6 border-t border-white/10 pt-4">
                 <h4 className="text-gray-400 font-medium mb-3">
-                  📋 Chi tiết kịch bản
+                  📋 Chi tiết kịch bản & Lời thoại lồng tiếng
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
                   {progress.script.scenes.map((scene) => (
                     <div
                       key={scene.sceneNumber}
                       className="bg-white/5 rounded-lg p-3"
                     >
-                      <div className="text-purple-400 font-medium text-sm">
-                        Cảnh {scene.sceneNumber} ({scene.durationSeconds}s)
+                      <div className="text-purple-400 font-medium text-sm flex items-center justify-between">
+                        <span>Cảnh {scene.sceneNumber}: {scene.description}</span>
+                        <span className="text-xs text-gray-500">
+                          {scene.durationSeconds}s
+                        </span>
                       </div>
-                      <div className="text-white text-sm mt-1">
-                        {scene.narration}
+                      <div className="text-gray-300 text-sm mt-1 italic">
+                        &quot;{scene.narration}&quot;
                       </div>
                     </div>
                   ))}
@@ -350,7 +443,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="mt-auto pt-8 pb-4 text-center text-gray-600 text-sm">
-        Powered by Google Gemini AI • Video AI Generator
+        Studio Phim AI • Tạo Phim Điện Ảnh Tự Động Kèm Lồng Tiếng Tiếng Việt
       </footer>
     </main>
   );

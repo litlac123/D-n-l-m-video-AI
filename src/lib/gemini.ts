@@ -12,24 +12,32 @@ export interface VideoScript {
   totalDuration: number;
 }
 
-export async function generateScript(idea: string): Promise<VideoScript> {
-  const prompt = `Bạn là một biên kịch video chuyên nghiệp. Dựa trên ý tưởng sau, hãy tạo kịch bản video dài đúng 1 phút (60 giây).
+export async function generateScript(
+  idea: string,
+  durationMode: "1m" | "3m" | "5m" = "1m"
+): Promise<VideoScript> {
+  const sceneCount = durationMode === "5m" ? 12 : durationMode === "3m" ? 8 : 4;
+  const targetSeconds = durationMode === "5m" ? 300 : durationMode === "3m" ? 180 : 60;
+  const secPerScene = Math.round(targetSeconds / sceneCount);
+
+  const prompt = `Bạn là một đạo diễn và biên kịch phim chuyên nghiệp. Dựa trên ý tưởng sau, hãy tạo kịch bản phim dài ${Math.round(targetSeconds / 60)} phút (${targetSeconds} giây).
 
 Ý tưởng: ${idea}
 
-Hãy chia thành 4 cảnh (scene), mỗi cảnh đúng 15 giây. Trả về DUY NHẤT 1 object JSON theo đúng định dạng sau (KHÔNG giải thích, KHÔNG có markdown):
+Hãy chia câu chuyện thành đúng ${sceneCount} cảnh (scenes) theo cấu trúc điện ảnh (Mở đầu, Phát triển, Cao trào, Kết thúc). Mỗi cảnh khoảng ${secPerScene} giây.
+Trả về DUY NHẤT 1 object JSON theo đúng định dạng sau (KHÔNG giải thích, KHÔNG có markdown):
 {
-  "title": "Tiêu đề video",
+  "title": "Tiêu đề phim",
   "scenes": [
     {
       "sceneNumber": 1,
       "description": "Mô tả ngắn gọn cảnh này",
       "visualPrompt": "A detailed cinematic photorealistic 8k wide shot in English describing lighting, colors, style, subject without text",
-      "narration": "Lời thuyết minh bằng tiếng Việt cho cảnh này",
-      "durationSeconds": 15
+      "narration": "Lời thuyết minh bằng tiếng Việt diễn cảm cho cảnh này (khoảng 2-3 câu hấp dẫn)",
+      "durationSeconds": ${secPerScene}
     }
   ],
-  "totalDuration": 60
+  "totalDuration": ${targetSeconds}
 }`;
 
   try {
