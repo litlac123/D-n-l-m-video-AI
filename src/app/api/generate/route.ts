@@ -67,11 +67,11 @@ async function processVideo(jobId: string, idea: string) {
 
       const imageData = await generateImageFromPrompt(
         scene.visualPrompt,
-        (waitSec) => {
+        (msg) => {
           setJobProgress(jobId, {
             status: "processing",
             progress: Math.round(progressPercent),
-            currentStep: `⏳ Đang xếp hàng xử lý cảnh ${i + 1}/${script.scenes.length} (chờ ${waitSec}s)...`,
+            currentStep: `${msg} [Cảnh ${i + 1}/${script.scenes.length}]`,
             script,
           });
         }

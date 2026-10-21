@@ -99,32 +99,55 @@ Hãy chia thành 4 cảnh (scene), mỗi cảnh đúng 15 giây. Trả về DUY 
 
 export async function generateImageFromPrompt(
   visualPrompt: string,
-  onRetry?: (waitSec: number) => void
+  onNotify?: (message: string) => void
 ): Promise<string> {
-  const seed = Math.floor(Math.random() * 10000000);
   const cleanPrompt = visualPrompt
     .replace(/[^\w\s,.-]/gi, "")
-    .slice(0, 300);
+    .slice(0, 250);
 
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-    cleanPrompt
-  )}?nologo=true&seed=${seed}`;
+  // Fallback models to cycle through if a server is 503 or overloaded
+  const models = ["", "sana", "turbo"];
+  const maxRetries = 5;
 
-  const maxRetries = 4;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const res = await fetch(imageUrl);
+    const seed = Math.floor(Math.random() * 10000000);
+    const modelParam = models[(attempt - 1) % models.length];
+    const modelQuery = modelParam ? `&model=${modelParam}` : "";
 
-      if (res.status === 402 && attempt < maxRetries) {
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+      cleanPrompt
+    )}?nologo=true&seed=${seed}${modelQuery}`;
+
+    try {
+      const res = await fetch(imageUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+          Accept: "image/jpeg,image/png,image/*",
+        },
+      });
+
+      // Handle 402 Rate Limit (queue delay)
+      if (res.status === 402) {
         const retryHeader = res.headers.get("retry-after");
         const waitSec = retryHeader ? parseInt(retryHeader, 10) + 2 : 15;
-        if (onRetry) onRetry(waitSec);
+        if (onNotify) onNotify(`⏳ Đang xếp hàng xử lý (chờ ${waitSec}s)...`);
         await new Promise((r) => setTimeout(r, waitSec * 1000));
         continue;
       }
 
+      // Handle 503 / 502 / 504 / 500 / 429 (Server busy / overloaded)
       if (!res.ok) {
-        throw new Error(`Không thể tạo hình ảnh (HTTP ${res.status})`);
+        if (attempt < maxRetries) {
+          if (onNotify)
+            onNotify(
+              `⚠️ Máy chủ AI đang bận (HTTP ${res.status}), đang chuyển server dự phòng (lần ${attempt}/${maxRetries})...`
+            );
+          await new Promise((r) => setTimeout(r, 4000));
+          continue;
+        }
+        throw new Error(
+          `Máy chủ AI hiện đang bận (HTTP ${res.status}). Vui lòng bấm thử lại sau giây lát.`
+        );
       }
 
       const arrayBuffer = await res.arrayBuffer();
@@ -134,8 +157,14 @@ export async function generateImageFromPrompt(
 
       return `data:${contentType};base64,${base64}`;
     } catch (err: any) {
-      if (attempt === maxRetries) throw err;
-      await new Promise((r) => setTimeout(r, 5000));
+      if (attempt === maxRetries) {
+        throw new Error(
+          err.message || "Không thể kết nối máy chủ tạo ảnh. Vui lòng thử lại."
+        );
+      }
+      if (onNotify)
+        onNotify(`🔄 Đang thử lại kết nối (lần ${attempt}/${maxRetries})...`);
+      await new Promise((r) => setTimeout(r, 4000));
     }
   }
 
